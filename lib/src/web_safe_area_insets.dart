@@ -1,16 +1,11 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
-
 import 'package:flutter/widgets.dart';
 import 'package:safe_area_insets/safe_area_insets.dart';
 
 typedef SafeAreaInsetsChangedCallback = void Function(EdgeInsets insets);
 
-/// Created by ipcjs on 2022/12/8.
 class WebSafeAreaInsets extends StatelessWidget {
-  const WebSafeAreaInsets({
-    super.key,
-    required this.child,
-  });
+  const WebSafeAreaInsets({super.key, required this.child});
+
   final Widget child;
 
   @override
@@ -29,8 +24,12 @@ class WebSafeAreaInsets extends StatelessWidget {
         return MediaQuery(
           data: data.copyWith(
             viewPadding: insets,
-            padding: (insets - data.viewInsets).clamp(
-                EdgeInsets.zero, EdgeInsetsGeometry.infinity) as EdgeInsets,
+            padding:
+            (insets - data.viewInsets).clamp(
+              EdgeInsets.zero,
+              EdgeInsetsGeometry.infinity,
+            )
+            as EdgeInsets,
           ),
           child: child,
         );

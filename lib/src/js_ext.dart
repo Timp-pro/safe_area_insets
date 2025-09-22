@@ -1,90 +1,102 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
+// ignore_for_file: avoid_web_libraries_in_flutter, unused_element, unused_element_parameter
 
-@JS()
-library js_ext;
-
-import 'dart:html';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:js/js.dart';
+import 'package:web/web.dart' hide CSS;
 
-/// @see
-/// - https://github.com/dart-lang/sdk/issues/26544
-/// - https://github.com/luanpotter/dart_web_audio/blob/master/package/lib/dart_web_audio.dart
-///
-/// Created by ipcjs on 2022/12/8.
-@JS()
-@staticInterop
-class JSEventTarget {}
+// Definir las funciones JS de forma más directa
+@JS('addEventListener')
+external void _addEventListener(JSString type, JSFunction listener, [JSAny? options]);
 
-extension JSEventTargetExt on JSEventTarget {
-  external void addEventListener(
-    String type,
-    EventListener listener, [
-    AddEventListenerOptionsOrBool? options,
-  ]);
-  external void removeEventListener(
-    String type,
-    EventListener listener, [
-    EventListenerOptionsOrBool? options,
-  ]);
-}
+@JS('removeEventListener')
+external void _removeEventListener(JSString type, JSFunction listener, [JSAny? options]);
 
-typedef Disposable = void Function();
-
+// Extensión corregida para EventTarget
 extension EventTargetExt on EventTarget {
   Disposable listenEvent(
-    String type,
-    EventListener listener, [
-    AddEventListenerOptionsOrBool? options,
-  ]) {
-    final jsListener = allowInterop(listener);
-    final js = this as JSEventTarget;
-    js.addEventListener(type, jsListener, options);
-    return () => js.removeEventListener(type, jsListener);
+      String type,
+      JsEventListener listener, [
+        JSAny? options,
+      ]) {
+    final jsListener = listener.toJS;
+    final jsType = type.toJS;
+
+    // Llamar directamente en el contexto del elemento
+    if (options != null) {
+      (this as JSObject).callMethod('addEventListener'.toJS, jsType, jsListener, options);
+      return () => (this as JSObject).callMethod('removeEventListener'.toJS, jsType, jsListener, options);
+    } else {
+      (this as JSObject).callMethod('addEventListener'.toJS, jsType, jsListener);
+      return () => (this as JSObject).callMethod('removeEventListener'.toJS, jsType, jsListener);
+    }
   }
 }
 
-typedef EventListenerOptionsOrBool = dynamic;
-typedef AddEventListenerOptionsOrBool = dynamic;
+typedef Disposable = void Function();
+typedef JsEventListener = void Function(JSAny? event);
 
-@anonymous
+// Opciones tipadas para addEventListener con nombre único
 @JS()
-abstract class EventListenerOptions {
-  external bool get capture;
-  external set capture(bool v);
-  external factory EventListenerOptions({bool capture});
+@anonymous
+extension type CustomAddEventListenerOptions._(JSObject _) implements JSObject {
+  external bool? get once;
+  external set once(bool? v);
+  external bool? get passive;
+  external set passive(bool? v);
+  external bool? get capture;
+  external set capture(bool? v);
+  external factory CustomAddEventListenerOptions({bool? once, bool? passive, bool? capture});
 }
 
-@anonymous
-@JS()
-abstract class AddEventListenerOptions implements EventListenerOptions {
-  external bool get once;
-  external set once(bool v);
-  external bool get passive;
-  external set passive(bool v);
-  external factory AddEventListenerOptions(
-      {bool once, bool passive, bool capture});
+// Extensión para CSS usando JS directo con nombre único
+class CustomCSS {
+  static bool supports(String property, String value) {
+    return (globalContext['CSS'] as JSObject).callMethod('supports'.toJS, property.toJS, value.toJS) as bool;
+  }
+
+  static bool supportsCondition(String conditionText) {
+    return (globalContext['CSS'] as JSObject).callMethod('supports'.toJS, conditionText.toJS) as bool;
+  }
+}
+
+// Extensiones adicionales para Element usando JS directo
+extension ElementExt on Element {
+  CSSStyleDeclaration getComputedStyle() {
+    return globalContext.callMethod('getComputedStyle'.toJS, this as JSObject) as CSSStyleDeclaration;
+  }
+}
+
+// Extensión para CSSStyleDeclaration para obtener valores como double
+extension CSSStyleDeclarationExt on CSSStyleDeclaration {
+  double? get insetValue {
+    final value = paddingBottom;
+    if (!value.endsWith('px')) {
+      return null;
+    }
+    return double.tryParse(value.substring(0, value.length - 2));
+  }
 }
 
 @visibleForTesting
 void testJsExt() {
-  final div = DivElement()
-    ..id = 'js_ext_test'
-    ..text = 'click to hide me.';
-  div.style
-    ..backgroundColor = 'red'
-    ..color = 'white'
-    ..position = 'fixed';
-  Disposable? disposable;
-  disposable = div.listenEvent(
-    'click',
-    (event) {
-      window.console.log('$event');
-      div.style.display = 'none';
-      disposable?.call();
-    },
-  );
+  final div = document.createElement('div') as HTMLElement;
+  div.id = 'js_ext_test';
+  div.textContent = 'click to hide me';
+  final style = div.style;
+  style.backgroundColor = 'red';
+  style.color = 'white';
+  style.position = 'fixed';
+  style.top = '20px';
+  style.right = '20px';
+  style.padding = '10px';
+  style.cursor = 'pointer';
+  style.zIndex = '9999';
 
-  document.body?.children.add(div);
+  div.listenEvent('click', (event) {
+    div.remove();
+  });
+
+  document.body!.appendChild(div);
 }

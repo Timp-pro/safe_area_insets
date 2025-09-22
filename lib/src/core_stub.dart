@@ -1,7 +1,7 @@
 import 'package:flutter/rendering.dart';
 
 Never _unsupported() =>
-    throw UnsupportedError('The method only be called on Web platform.');
+    throw UnsupportedError('The method can only be called on Web platform.');
 
 EdgeInsets get safeAreaInsets => _unsupported();
 
