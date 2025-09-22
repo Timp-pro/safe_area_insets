@@ -13,11 +13,15 @@ enum _InsetsAttr { top, left, right, bottom }
 
 EdgeInsets _readInsets() {
   final styles = elementComputedStyle;
+  final left = styles[_InsetsAttr.left]?.insetValue ?? 0.0;
+  final top = styles[_InsetsAttr.top]?.insetValue ?? 0.0;
+  final right = styles[_InsetsAttr.right]?.insetValue ?? 0.0;
+  final bottom = styles[_InsetsAttr.bottom]?.insetValue ?? 0.0;
   return EdgeInsets.only(
-    left: styles[_InsetsAttr.left]?.insetValue ?? 0.0,
-    top: styles[_InsetsAttr.top]?.insetValue ?? 0.0,
-    right: styles[_InsetsAttr.right]?.insetValue ?? 0.0,
-    bottom: styles[_InsetsAttr.bottom]?.insetValue ?? 0.0,
+    left: left,
+    top: top,
+    right: right,
+    bottom: bottom,
   );
 }
 
@@ -196,14 +200,17 @@ bool get isSupported => (support ??= getSupport()).isNotEmpty;
 void setupViewportFit() {
   var viewport =
       document.querySelector('meta[name=viewport]') as HTMLMetaElement?;
+
   if (viewport == null) {
     viewport = document.createElement('meta') as HTMLMetaElement;
     viewport.name = 'viewport';
     document.head?.appendChild(viewport);
   }
+
   final attrs = <String, String>{};
-  for (final keyValue
-      in viewport.content.split(',').map((e) => e.trim().split('='))) {
+  final parts = viewport.content.split(',');
+  for (final part in parts) {
+    final keyValue = part.trim().split('=');
     if (keyValue.length == 2) {
       attrs[keyValue[0]] = keyValue[1];
     }
@@ -211,8 +218,8 @@ void setupViewportFit() {
 
   if (attrs['viewport-fit'] != 'cover') {
     attrs['viewport-fit'] = 'cover';
-    viewport.content = attrs.entries
-        .map((e) => '${e.key}=${e.value}')
-        .join(',');
+    final newContent =
+        attrs.entries.map((e) => '${e.key}=${e.value}').join(',');
+    viewport.content = newContent;
   }
 }
