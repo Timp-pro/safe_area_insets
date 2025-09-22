@@ -8,28 +8,54 @@ import 'package:web/web.dart' hide CSS;
 
 // Definir las funciones JS de forma más directa
 @JS('addEventListener')
-external void _addEventListener(JSString type, JSFunction listener, [JSAny? options]);
+external void _addEventListener(
+  JSString type,
+  JSFunction listener, [
+  JSAny? options,
+]);
 
 @JS('removeEventListener')
-external void _removeEventListener(JSString type, JSFunction listener, [JSAny? options]);
+external void _removeEventListener(
+  JSString type,
+  JSFunction listener, [
+  JSAny? options,
+]);
 
 // Extensión corregida para EventTarget
 extension EventTargetExt on EventTarget {
   Disposable listenEvent(
-      String type,
-      JsEventListener listener, [
-        JSAny? options,
-      ]) {
+    String type,
+    JsEventListener listener, [
+    JSAny? options,
+  ]) {
     final jsListener = listener.toJS;
     final jsType = type.toJS;
 
     // Llamar directamente en el contexto del elemento
     if (options != null) {
-      (this as JSObject).callMethod('addEventListener'.toJS, jsType, jsListener, options);
-      return () => (this as JSObject).callMethod('removeEventListener'.toJS, jsType, jsListener, options);
+      (this as JSObject).callMethod(
+        'addEventListener'.toJS,
+        jsType,
+        jsListener,
+        options,
+      );
+      return () => (this as JSObject).callMethod(
+        'removeEventListener'.toJS,
+        jsType,
+        jsListener,
+        options,
+      );
     } else {
-      (this as JSObject).callMethod('addEventListener'.toJS, jsType, jsListener);
-      return () => (this as JSObject).callMethod('removeEventListener'.toJS, jsType, jsListener);
+      (this as JSObject).callMethod(
+        'addEventListener'.toJS,
+        jsType,
+        jsListener,
+      );
+      return () => (this as JSObject).callMethod(
+        'removeEventListener'.toJS,
+        jsType,
+        jsListener,
+      );
     }
   }
 }
@@ -42,29 +68,51 @@ typedef JsEventListener = void Function(JSAny? event);
 @anonymous
 extension type CustomAddEventListenerOptions._(JSObject _) implements JSObject {
   external bool? get once;
+
   external set once(bool? v);
+
   external bool? get passive;
+
   external set passive(bool? v);
+
   external bool? get capture;
+
   external set capture(bool? v);
-  external factory CustomAddEventListenerOptions({bool? once, bool? passive, bool? capture});
+
+  external factory CustomAddEventListenerOptions({
+    bool? once,
+    bool? passive,
+    bool? capture,
+  });
 }
 
 // Extensión para CSS usando JS directo con nombre único
 class CustomCSS {
   static bool supports(String property, String value) {
-    return (globalContext['CSS'] as JSObject).callMethod('supports'.toJS, property.toJS, value.toJS) as bool;
+    return ((globalContext['CSS'] as JSObject).callMethod(
+              'supports'.toJS,
+              property.toJS,
+              value.toJS,
+            )
+            as JSBoolean)
+        .toDart;
   }
 
   static bool supportsCondition(String conditionText) {
-    return (globalContext['CSS'] as JSObject).callMethod('supports'.toJS, conditionText.toJS) as bool;
+    return ((globalContext['CSS'] as JSObject).callMethod(
+              'supports'.toJS,
+              conditionText.toJS,
+            )
+            as JSBoolean)
+        .toDart;
   }
 }
 
 // Extensiones adicionales para Element usando JS directo
 extension ElementExt on Element {
   CSSStyleDeclaration getComputedStyle() {
-    return globalContext.callMethod('getComputedStyle'.toJS, this as JSObject) as CSSStyleDeclaration;
+    return globalContext.callMethod('getComputedStyle'.toJS, this as JSObject)
+        as CSSStyleDeclaration;
   }
 }
 

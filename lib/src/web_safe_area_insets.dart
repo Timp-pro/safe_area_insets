@@ -25,11 +25,11 @@ class WebSafeAreaInsets extends StatelessWidget {
           data: data.copyWith(
             viewPadding: insets,
             padding:
-            (insets - data.viewInsets).clamp(
-              EdgeInsets.zero,
-              EdgeInsetsGeometry.infinity,
-            )
-            as EdgeInsets,
+                (insets - data.viewInsets).clamp(
+                      EdgeInsets.zero,
+                      EdgeInsetsGeometry.infinity,
+                    )
+                    as EdgeInsets,
           ),
           child: child,
         );
