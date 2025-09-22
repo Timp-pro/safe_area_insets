@@ -89,22 +89,22 @@ extension type CustomAddEventListenerOptions._(JSObject _) implements JSObject {
 // Extensión para CSS usando JS directo con nombre único
 class CustomCSS {
   static bool supports(String property, String value) {
-    return ((globalContext['CSS'] as JSObject).callMethod(
-              'supports'.toJS,
-              property.toJS,
-              value.toJS,
-            )
-            as JSBoolean)
-        .toDart;
+    final result = (globalContext['CSS'] as JSObject).callMethod(
+      'supports'.toJS,
+      property.toJS,
+      value.toJS,
+    );
+    final isSupported = (result as JSBoolean).toDart;
+    return isSupported;
   }
 
   static bool supportsCondition(String conditionText) {
-    return ((globalContext['CSS'] as JSObject).callMethod(
-              'supports'.toJS,
-              conditionText.toJS,
-            )
-            as JSBoolean)
-        .toDart;
+    final result = (globalContext['CSS'] as JSObject).callMethod(
+      'supports'.toJS,
+      conditionText.toJS,
+    );
+    final isSupported = (result as JSBoolean).toDart;
+    return isSupported;
   }
 }
 
